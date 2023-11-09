@@ -20,18 +20,26 @@
 #include <algorithm>
 #include <cstddef>
 #include <initializer_list>
+#include <limits.h>
+#include <limits>
 
+///TODO
+/*
+    double f = 2.5;
+    int a = 4;
+    long u = a + f;
 
-// double f = 2.5;
-//int a = 4;
-//long u = a + f;
+    In trace() it prints 0, when matrix is not square
 
-//stupencheti
-//rankD
-//obratni
-//determinant 
-//СЛУ
-// A * X * C = B
+    Iterators
+
+    stupencheti
+    rankD
+    obratni
+    determinant
+    СЛУ
+    A * X * C = B
+*/
 
 template <typename T>
 class Matrix
@@ -41,8 +49,130 @@ private:
     std::size_t _column;
     std::vector<std::vector<T>> _matrix;
 public:
+    ///---------ITERATOR---------
+    class Iterator
+    {
+    private:
+        typename std::vector<std::vector<T>>::iterator it_row;
+        typename std::vector<T>::iterator it_col;
+    public:
+        using value_type = T;
+        using reference = value_type&;
+        using pointer = value_type*;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::bidirectional_iterator_tag;
 
-    /// Merged default constructor, Matrix(row, column) and Matrix(row, column, filler)
+        Iterator& operator++()
+        {
+            ++it_col;
+            if (it_col == it_row->end())
+            {
+                ++it_row;
+                it_col = it_row->begin();
+            }
+            return *this;
+        }
+
+        Iterator operator++(int)
+        {
+            Iterator temp = *this;
+            ++this;
+            return temp;
+        }
+        Iterator& operator--()
+        {
+            ++it_col;
+            if (it_col == it_row->end())
+            {
+                ++it_row;
+                it_col = it_row->begin();
+            }
+            return *this;
+        }
+
+        bool operator!=(const Iterator &other) const
+        {
+            return it_row != other.row || it_col != other.col;
+        }
+
+        T &operator*()
+        {
+            return *it_col;
+        }
+    };
+
+    ///---------ConstITERATOR---------
+    class ConstIterator
+    {
+    private:
+        typename std::vector<std::vector<T>>::iterator it_row;
+        typename std::vector<T>::iterator it_col;
+    public:
+        using value_type = T;
+        using reference = const value_type&;
+        using pointer = const value_type*;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::bidirectional_iterator_tag;
+
+        Iterator& operator++()
+        {
+            ++it_col;
+            if (it_col == it_row->end())
+            {
+                ++it_row;
+                it_col = it_row->begin();
+            }
+            return *this;
+        }
+        Iterator operator++(int)
+        {
+            Iterator temp = *this;
+            ++this;
+            return temp;
+        }
+
+        Iterator& operator--()
+        {
+            ++it_col;
+            if (it_col == it_row->end())
+            {
+                ++it_row;
+                it_col = it_row->begin();
+            }
+            return *this;
+        }
+        Iterator operator--(int)
+        {
+            Iterator temp = *this;
+            --this;
+            return temp;
+        }
+
+        bool operator!=(const Iterator &other) const
+        {
+            return it_row != other.row || it_col != other.col;
+        }
+
+        T &operator*() const
+        {
+            return *it_col;
+        }
+    };
+
+    ///---------ForITERATORS----------
+    Iterator begin() const
+    {
+        return {_matrix.begin(), _matrix.begin()->begin()};
+    }
+    Iterator end() const
+    {
+        auto last = _matrix.end();
+        return {last, last->begin()};
+    }
+
+    ///---------CONSTRUCTORS---------
+
+    /// Merged default constructor, Matrix(it_row, column) and Matrix(it_row, column, filler)
     /// (rows, columns, value) constructor, filling by value
     Matrix(std::size_t row = 0, std::size_t column = 0, std::size_t filler = 0) : 
         _row(row)
@@ -52,7 +182,6 @@ public:
     }
 
     /// Copy constructor
-
     Matrix(Matrix<T>& other)
     {
         std::swap(_row, other._row);
@@ -81,20 +210,17 @@ public:
     }
 
     ///Move constructor
-    /*Matrix(Matrix&& other) : 
-        _row(other._row)
-        , _column(other._column)
+    Matrix(Matrix<T>&& other)
     {
-        for (std::size_t i = 0; i < other._row; ++i)
-        {
-            for(std::size_t u = )
-        }
-    }*/
+        _row = std::move(other._row);
+        _column = std::move(other._column);
+        _matrix = std::move(other._matrix);
+    }
     
     /// Destructor
     ~Matrix() = default;
     
-    /// OPERATORS
+    /// ---------OPERATORS---------
 
     /// operator[]
     std::vector<T>& operator[](std::size_t index)
@@ -130,7 +256,7 @@ public:
         }
         catch (const std::exception& e)
         {
-            std::cout << e.what() << '\n';
+            std::cout << e.what();
         }
     }
 
@@ -153,16 +279,16 @@ public:
             }
             else
             {
-                throw std::logic_error("Incompatible matrix dimensions for sub");
+                throw std::logic_error("Incompatible matrix dimensions to subtract\n");
             }
         }
         catch (const std::exception& e)
         {
-            std::cout << e.what() << '\n';
+            std::cout << e.what();
         }
     }
 
-    /// operator* for matrices
+    /// operator* for matrix * matrix
     template <typename U>
     Matrix<double> operator*(const Matrix<U>& other) const
     {
@@ -191,24 +317,21 @@ public:
         }
         catch (const std::exception& e)
         {
-            std::cout << e.what() << '\n';
+            std::cout << e.what();
         }
     }
 
-    /// operator* to multiply by any number || THERE IS A PROBLEM
-    /*template <typename U>
-    Matrix<double> operator*(U value)
-    {
-        Matrix<T> new_matrix(_row, _column);
-        for (std::size_t i = 0; i < _row; ++i)
-        {
-            for (std::size_t j = 0; j < _column; ++j)
-            {
-                new_matrix[i][j] = (_matrix[i][j]) * value;
+    /// operator* to multiply by any number
+    template <typename U>
+    friend Matrix<T> operator*(U value, const Matrix<T>& matrix) {
+        Matrix<T> newMatrix(matrix.get_row(), matrix.get_column());
+        for (std::size_t i = 0; i < matrix.get_row(); ++i) {
+            for (std::size_t j = 0; j < matrix.get_column(); ++j) {
+                newMatrix[i][j] = matrix.get_matrix()[i][j] * static_cast<T>(value);
             }
         }
-        return new_matrix;
-    }*/
+        return newMatrix;
+    }
 
     /// operator= to Matrix
     Matrix<T>& operator=(const Matrix<T>& other) {
@@ -225,46 +348,65 @@ public:
         return *this;
     }
 
-    //matr1 += matr2
+    /// operator+=
     template <typename U>
-    Matrix<double>& operator+=(const Matrix<U>& other)
+    Matrix<T>& operator+=(const Matrix<U>& other)
     {
-        (*this) = (*this) + other;
+        for(std::size_t i = 0; i < _row; ++i)
+        {
+            for(std::size_t j = 0; j < _column; ++j)
+            {
+                _matrix[i][j] += other.get_matrix()[i][j];
+            }
+        }
         return *this;
     }
-    //matr1 -= matr2
+
+    /// operator-=
     template <typename U>
     Matrix<double>& operator-=(const Matrix<U>& other)
     {
-        (*this) = (*this) - other;
+        for(std::size_t i = 0; i < _row; ++i)
+        {
+            for(std::size_t j = 0; j < _column; ++j)
+            {
+                _matrix[i][j] -= other.get_matrix()[i][j];
+            }
+        }
         return *this;
     }
-    //matr1 *= matr2
+
+    /// operator*= for Matrix *= matrix;
     template <typename U>
     Matrix<double>& operator*=(const Matrix<U>& other)
     {
-        (*this) = (*this) * other;
+        _matrix = _matrix * other;
         return *this;
     }
-    //matr1 *= num
-    template <typename U>
 
+    /// operator*= for Matrix *= any type of number
+    template <typename U>
     Matrix<double>& operator*=(U num)
     {
         (*this) = (*this) * num;
         return *this;
     }
-    // matr(matr2);
-    Matrix<int> operator() (const Matrix& mat)
+
+    /// operator==
+    bool operator==(const Matrix<T>& rm) const
     {
-        (*this) = mat;
-        return *this;
+        return _matrix == rm._matrix;
     }
 
-
-    void swapRows(Matrix<T>& matrix, std::size_t row1, std::size_t row2) {
-        std::swap(matrix[row1], matrix[row2]);
+    /// operator!=
+    bool operator!=(const Matrix<T>& rm) const
+    {
+        return !(*this == rm);
     }
+
+    /// ---------METHODS---------
+
+    /// Transpose
     Matrix<T> transpose() const
     {
         Matrix<T> new_matrix(_column, _row);
@@ -277,8 +419,10 @@ public:
         }
         return new_matrix;
     }
-    //stupencheti
-    Matrix<T> upperTriangularForm() {
+
+    /// Upper Triangular Form
+    Matrix<T> toUpper() const
+    {
         for (std::size_t i = 0; i < _row; ++i)
         {
 
@@ -286,56 +430,13 @@ public:
 
         }
     }
-    T determinant()//tox poxeluc nshani poxum
+
+    /// Inverse of matrix
+    Matrix<T> inverse() const
     {
         try {
-            if (_row == _column)
-            {
-                T determinant = 1;
-                Matrix<T> new_matrix(_row, _column);
-                new_matrix._matrix = _matrix;
-                new_matrix = new_matrix.upperTriangularForm();
-                for (std::size_t i = 0; i < _row; ++i)
-                {
-                    determinant *= new_matrix[i][i];
-                }
-                return determinant;
-            }
-            else
-            {
-                throw std::logic_error("Matrix is not square for calculating the determinant :(");
-            }
-        }
-        catch (const std::exception& e)
-        {
-            std::cout << e.what() << '\n';
-        }
-    }
-    T sled() {
-        try {
-            if (_column == _row)
-            {
-                T sled = 0;
-                for (std::size_t i = 0; i < _row; ++i)
-                {
-                    sled += _matrix[i][i];
-                }
-                return sled;
-            }
-            else {
-                throw std::logic_error("Matrix is not square :(");
-            }
-        }
-        catch (const std::exception& e)
-        {
-            std::cout << e.what() << '\n';
-        }
-    }
-    Matrix<T> inverse()  {
-
-        try {
             if (_row != _column) {
-                throw std::logic_error("Incompatible matrix dimensions for add");
+                throw std::logic_error("Matrix is not square to calculate the inverse\n");
             }
             else {
                 // Create an augmented matrix [A|I]
@@ -349,7 +450,7 @@ public:
 
                 // Apply Gauss-Jordan elimination
                 for (std::size_t i = 0; i < _row; ++i) {
-                    // Find pivot row
+                    // Find pivot it_row
                     std::size_t pivotRow = i;
                     for (std::size_t j = i + 1; j < _row; ++j) {
                         if (std::abs(augmented[j][i]) > std::abs(augmented[pivotRow][i])) {
@@ -362,7 +463,7 @@ public:
                         swapRows(augmented, i, pivotRow);
                     }
 
-                    // Scale pivot row
+                    // Scale pivot it_row
                     T pivotElement = augmented[i][i];
                     for (std::size_t j = i; j < _column * 2; ++j) {
                         augmented[i][j] /= pivotElement;
@@ -386,122 +487,142 @@ public:
                         inverted[i][j] = augmented[i][_column + j];
                     }
                 }
-
                 return inverted;
             }
-
         }
         catch (const std::exception& e) {
-            std::cout << e.what() << '\n';
+            std::cout << e.what();
         }
-        
-
-
     }
 
-    /// Getters
+    /// Determinant
+    T determinant()
+    {
+        try {
+            if (_row == _column)
+            {
+                T determinant = 1;
+                Matrix<T> new_matrix(_row, _column);
+                new_matrix._matrix = _matrix;
+                new_matrix = new_matrix.upperTriangularForm();
+                for (std::size_t i = 0; i < _row; ++i)
+                {
+                    determinant *= new_matrix[i][i];
+                }
+                return determinant;
+            }
+            else
+            {
+                throw std::logic_error("Matrix is not square for calculating the determinant\n");
+            }
+        }
+        catch (const std::exception& e)
+        {
+            std::cout << e.what();
+        }
+    }
+
+    /// Trace
+    T trace() const
+    {
+        T trace = 0;
+        try {
+            if (_column == _row)
+            {
+                for (std::size_t i = 0; i < _row; ++i)
+                {
+                    trace += _matrix[i][i];
+                }
+                return trace;
+            }
+            else {
+                throw std::logic_error("Matrix is not square to calculate the trace\n");
+            }
+        }
+        catch (const std::exception& e)
+        {
+            std::cout << e.what();
+        }
+    }
+
+    /// Size
+    std::pair<std::size_t, std::size_t> size()
+    {
+        return std::make_pair(_row, _column);
+    }
+
+    /// IsSymmetric
+    bool isSymmetric()
+    {
+        return (*this) == (*this).transpose();
+    }
+
+    /// ?
+    void swapRows(Matrix<T>& matrix, std::size_t row1, std::size_t row2) {
+        std::swap(matrix[row1], matrix[row2]);
+    }
+
+    /// ---------GETTERS----------
+
+    /// Row
     std::size_t get_row() const
     {
         return _row;
     }
+
+    /// Column
     std::size_t get_column() const
     {
         return _column;
     }
+
+    /// Returns Matrix[i][j]
     T get_value(std::size_t i, std::size_t j) const
     {
         return _matrix[i][j];
     }
+
+    /// Matrix
     std::vector<std::vector<T>> get_matrix() const
     {
         return _matrix;
     }
 
-    /// Setter
+    /// ---------SETTERS---------
+
+    /// Value setter
     void value_setter(T num, std::size_t index1, std::size_t index2)
     {
         _matrix[index1][index2] = num;
     }
 
-    std::pair<std::size_t, std::size_t> size()
-    {
-        return std::make_pair(_row, _column);
-    }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//------------------------
-template <typename T>
-bool symmetric(const Matrix<T>& matr)
-{
-    return matr == matr.transpose();
-}
-//------------------------
-template <typename T>
-bool operator==(const Matrix<T>& matr1, const Matrix<T>& matr2)
-{
-
-    if (matr1.get_column() != matr2.get_column() || matr1.get_row() != matr2.get_row())
-    {
-        return false;
-    }
-    for (std::size_t i = 0; i < matr1.get_row(); ++i)
-    {
-        for (std::size_t u = 0; u < matr1.get_column(); ++u)
-        {
-            if (matr1[i][u] != matr2[i][u])
-                return false;
+/// operator* to multiply by any number
+template <typename T, typename U>
+Matrix<T> operator*(const Matrix<T>& matrix, U value) {
+    Matrix<T> newMatrix(matrix.get_row(), matrix.get_column());
+    for (std::size_t i = 0; i < matrix.get_row(); ++i) {
+        for (std::size_t j = 0; j < matrix.get_column(); ++j) {
+            newMatrix[i][j] = matrix.get_matrix()[i][j] * static_cast<T>(value);
         }
     }
-    return true;
+    return newMatrix;
 }
-template <typename T>
-bool operator!=(const Matrix<T>& matr1, const Matrix<T>& matr2)
-{
-    return !(matr1 == matr2);
-}
-//------------------------
+
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const Matrix<T>& matr)
 {
+
     for (std::size_t i = 0; i < matr.get_row(); ++i)
     {
+        (i == 0) ? std::cout << "⎛" : ((i == matr.get_row() - 1) ? std::cout<< "⎝" : std::cout << "│");
         for (std::size_t u = 0; u < matr.get_column(); ++u)
         {
-            out << matr[i][u] << " ";
+            (u == matr.get_column() - 1) ? (out << matr[i][u]) : (out << matr[i][u] << " ");
         }
-        out << '\n';
+        (i == 0) ? std::cout << "⎞" : ((i == matr.get_row() - 1) ? std::cout<< "⎠" : std::cout << "│");
+        std::cout << std::endl;
     }
     return out;
 }
@@ -519,4 +640,3 @@ std::istream& operator>>(std::istream& in, Matrix<T>& matr)
     }
     return in;
 }
-//------------------------

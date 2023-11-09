@@ -1,23 +1,18 @@
 #include "matrix.h"
 
-int main() { 
-    Matrix<double> matr{
-        {1,2,3},
-        {1,2,3},
-        {1,2,3}
+int main() {
+    Matrix<int> matr3
+    {
+        {1,1,1},
+        {1,2,2},
+        {1,2,4},
+        {1,2,4}
     };
-    Matrix<int> matr2{
-        {1,2,3},
-        {1,2,3},
-        {1,2,3},
-        {1,2,3}
-    };
-    matr += matr2;
-    
-   
-    
-    
-    
+    for(auto it = matr3.begin(); it != matr3.end(); ++it)
+    {
+        std::cout<<*it<<' ';
+    }
+
 }
 
 
