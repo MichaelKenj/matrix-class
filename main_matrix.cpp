@@ -8,7 +8,7 @@ int main() {
         {1,2,4},
         {1,2,4}
     };
-    for(auto it = matr3.begin(); it != matr3.end(); ++it)
+    for(auto it = matr3.cbegin(); it != matr3.cend(); ++it)
     {
         std::cout<<*it<<' ';
     }

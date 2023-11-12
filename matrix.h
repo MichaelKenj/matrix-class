@@ -20,8 +20,8 @@
 #include <algorithm>
 #include <cstddef>
 #include <initializer_list>
-#include <limits.h>
 #include <limits>
+
 
 ///TODO
 /*
@@ -31,7 +31,10 @@
 
     In trace() it prints 0, when matrix is not square
 
-    Iterators
+    Iterator works, but im not sure, that it correct
+    ConstIterator
+    ReverseIterator
+    ConstReverseIterator
 
     stupencheti
     rankD
@@ -53,123 +56,164 @@ public:
     class Iterator
     {
     private:
-        typename std::vector<std::vector<T>>::iterator it_row;
-        typename std::vector<T>::iterator it_col;
+        int index;
+        std::vector<std::vector<int>>& data_;
     public:
+        friend Matrix;
+        using iterator_category = std::bidirectional_iterator_tag;
         using value_type = T;
-        using reference = value_type&;
+        using difference_type = std::ptrdiff_t;
         using pointer = value_type*;
-        using difference_type = std::ptrdiff_t;
-        using iterator_category = std::bidirectional_iterator_tag;
+        using reference = value_type&;
 
-        Iterator& operator++()
+        /// Constructors
+        Iterator(std::size_t ro, std::vector<std::vector<int>>& data)
+                :index(ro)
+                ,data_(data)
+        {}
+        Iterator(const Iterator& other)
+                :index(other.index)
+                ,data_(other.data_)
+        {}
+
+        /// Destructor
+        ~Iterator() = default;
+
+        /// Operators
+        Iterator& operator=(const Iterator& other)
         {
-            ++it_col;
-            if (it_col == it_row->end())
-            {
-                ++it_row;
-                it_col = it_row->begin();
-            }
+            index = other.index;
             return *this;
         }
 
-        Iterator operator++(int)
-        {
-            Iterator temp = *this;
-            ++this;
-            return temp;
-        }
-        Iterator& operator--()
-        {
-            ++it_col;
-            if (it_col == it_row->end())
-            {
-                ++it_row;
-                it_col = it_row->begin();
-            }
-            return *this;
-        }
-
-        bool operator!=(const Iterator &other) const
-        {
-            return it_row != other.row || it_col != other.col;
-        }
-
-        T &operator*()
-        {
-            return *it_col;
-        }
-    };
-
-    ///---------ConstITERATOR---------
-    class ConstIterator
-    {
-    private:
-        typename std::vector<std::vector<T>>::iterator it_row;
-        typename std::vector<T>::iterator it_col;
-    public:
-        using value_type = T;
-        using reference = const value_type&;
-        using pointer = const value_type*;
-        using difference_type = std::ptrdiff_t;
-        using iterator_category = std::bidirectional_iterator_tag;
-
         Iterator& operator++()
         {
-            ++it_col;
-            if (it_col == it_row->end())
-            {
-                ++it_row;
-                it_col = it_row->begin();
-            }
+            ++index;
             return *this;
         }
         Iterator operator++(int)
         {
-            Iterator temp = *this;
-            ++this;
-            return temp;
+            Iterator tmp = *this;
+            ++index;
+            return tmp;
         }
-
         Iterator& operator--()
         {
-            ++it_col;
-            if (it_col == it_row->end())
-            {
-                ++it_row;
-                it_col = it_row->begin();
-            }
+            --index;
             return *this;
         }
         Iterator operator--(int)
         {
-            Iterator temp = *this;
-            --this;
-            return temp;
+            Iterator tmp = *this;
+            --index;
+            return tmp;
+        }
+        reference operator*() const
+        {
+            std::size_t row = index / data_[0].size();
+            std::size_t col = index % data_[0].size();
+            return data_[row][col];
+        }
+        friend bool operator==(const Iterator& lhs, const Iterator& rhs)
+        {
+            return lhs.index == rhs.index && lhs.data_ == rhs.data_;
+        }
+        friend bool operator!=(const Iterator& lhs, const Iterator& rhs)
+        {
+            return !(lhs == rhs);
         }
 
-        bool operator!=(const Iterator &other) const
+    };
+    ///---------ConstITERATOR---------
+    class ConstIterator
+    {
+    private:
+        int index;
+        std::vector<std::vector<int>>& data_;
+    public:
+        friend Matrix;
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type = const T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = value_type*;
+        using reference = const value_type&;
+
+        /// Constructors
+        ConstIterator(std::size_t ro, std::vector<std::vector<int>>& data)
+                :index(ro)
+                ,data_(data)
+        {}
+        ConstIterator(const ConstIterator& other)
+                :index(other.index)
+                ,data_(other.data_)
+        {}
+
+        /// Destructor
+        ~ConstIterator() = default;
+
+        /// Operators
+        ConstIterator& operator=(const ConstIterator& other)
         {
-            return it_row != other.row || it_col != other.col;
+            index = other.index;
+            return *this;
         }
 
-        T &operator*() const
+        ConstIterator& operator++()
         {
-            return *it_col;
+            ++index;
+            return *this;
         }
+        ConstIterator operator++(int)
+        {
+            ConstIterator tmp = *this;
+            ++index;
+            return tmp;
+        }
+        ConstIterator& operator--()
+        {
+            --index;
+            return *this;
+        }
+        ConstIterator operator--(int)
+        {
+            ConstIterator tmp = *this;
+            --index;
+            return tmp;
+        }
+        reference operator*() const
+        {
+            std::size_t row = index / data_[0].size();
+            std::size_t col = index % data_[0].size();
+            return data_[row][col];
+        }
+        friend bool operator==(const ConstIterator& lhs, const ConstIterator& rhs)
+        {
+            return lhs.index == rhs.index && lhs.data_ == rhs.data_;
+        }
+        friend bool operator!=(const ConstIterator& lhs, const ConstIterator& rhs)
+        {
+            return !(lhs == rhs);
+        }
+
     };
 
     ///---------ForITERATORS----------
-    Iterator begin() const
+    Iterator begin()
     {
-        return {_matrix.begin(), _matrix.begin()->begin()};
+        return Iterator{ 0, _matrix };
     }
-    Iterator end() const
+    Iterator end()
     {
-        auto last = _matrix.end();
-        return {last, last->begin()};
+        return Iterator{ _matrix.size() * _matrix[0].size(), _matrix };
     }
-
+    ConstIterator cbegin()
+    {
+        return ConstIterator{ 0, _matrix };
+    }
+    ConstIterator cend()
+    {
+        return ConstIterator{ _matrix.size() * _matrix[0].size(), _matrix };
+    }
     ///---------CONSTRUCTORS---------
 
     /// Merged default constructor, Matrix(it_row, column) and Matrix(it_row, column, filler)
