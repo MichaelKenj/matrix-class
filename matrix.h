@@ -36,6 +36,8 @@
     ReverseIterator
     ConstReverseIterator
 
+    Is it necessary , that return value of operators - + * is Matirx<double>?
+
     stupencheti
     rankD
     obratni
@@ -44,30 +46,30 @@
     A * X * C = B
 */
 
-template <typename T>
+
 class Matrix
 {
 private:
     std::size_t _row;
     std::size_t _column;
-    std::vector<std::vector<T>> _matrix;
+    std::vector<std::vector<double>> _matrix;
 public:
     ///---------ITERATOR---------
     class Iterator
     {
     private:
-        int index;
-        std::vector<std::vector<int>>& data_;
+        std::size_t index;
+        std::vector<std::vector<double>>& data_;
     public:
         friend Matrix;
         using iterator_category = std::bidirectional_iterator_tag;
-        using value_type = T;
+        using value_type = double;
         using difference_type = std::ptrdiff_t;
         using pointer = value_type*;
         using reference = value_type&;
 
         /// Constructors
-        Iterator(std::size_t ro, std::vector<std::vector<int>>& data)
+        Iterator(std::size_t ro, std::vector<std::vector<double>>& data)
                 :index(ro)
                 ,data_(data)
         {}
@@ -128,18 +130,18 @@ public:
     class ConstIterator
     {
     private:
-        int index;
-        std::vector<std::vector<int>>& data_;
+        std::size_t index;
+        std::vector<std::vector<double>>& data_;
     public:
         friend Matrix;
         using iterator_category = std::bidirectional_iterator_tag;
-        using value_type = const T;
+        using value_type = const double;
         using difference_type = std::ptrdiff_t;
         using pointer = value_type*;
         using reference = const value_type&;
 
         /// Constructors
-        ConstIterator(std::size_t ro, std::vector<std::vector<int>>& data)
+        ConstIterator(std::size_t ro, std::vector<std::vector<double>>& data)
                 :index(ro)
                 ,data_(data)
         {}
@@ -196,7 +198,6 @@ public:
         }
 
     };
-
     ///---------ForITERATORS----------
     Iterator begin()
     {
@@ -214,6 +215,19 @@ public:
     {
         return ConstIterator{ _matrix.size() * _matrix[0].size(), _matrix };
     }
+    Iterator rbegin()
+    {
+        // Calculate the index for the last element
+        std::size_t lastIndex = _matrix.size() * _matrix[0].size() - 1;
+
+        // Return an iterator pointing to the last element
+        return Iterator(lastIndex, _matrix);
+    }
+    Iterator rend()
+    {
+        // Return an iterator pointing to one position before the first element
+        return Iterator(-1, _matrix);
+    }
     ///---------CONSTRUCTORS---------
 
     /// Merged default constructor, Matrix(it_row, column) and Matrix(it_row, column, filler)
@@ -222,26 +236,28 @@ public:
         _row(row)
         , _column(column)
     {
-        _matrix.resize(_row, std::vector<T>(_column, filler));
+        _matrix.resize(_row, std::vector<double>(_column, filler));
     }
 
     /// Copy constructor
-    Matrix(Matrix<T>& other)
+    Matrix(Matrix& other) : 
+        _row(other._row)
+        ,_column(other._column)
+        ,_matrix(other._matrix)
     {
-        std::swap(_row, other._row);
-        std::swap(_column, other._column);
-        std::swap(_matrix, other._matrix);
+        std::cout << "Copy called\n";
     }
 
     /// Initializer list constructor
-    Matrix(const std::initializer_list<std::initializer_list<T>>& list)
+    Matrix(const std::initializer_list<std::initializer_list<double>>& list)
     {
+        std::cout << "Init called\n";
         _row = list.size();
         if (_row > 0)
             _column = list.begin()->size();
         else
             _column = 0;
-        _matrix.resize(_row, std::vector<T>(_column));
+        _matrix.resize(_row, std::vector<double>(_column));
         auto it1 = list.begin();
         for (std::size_t i = 0; i < _row; ++i, ++it1)
         {
@@ -254,11 +270,12 @@ public:
     }
 
     ///Move constructor
-    Matrix(Matrix<T>&& other)
+    Matrix( Matrix&& other) noexcept
     {
         _row = std::move(other._row);
         _column = std::move(other._column);
         _matrix = std::move(other._matrix);
+        std::cout << "Move called\n";
     }
     
     /// Destructor
@@ -267,23 +284,22 @@ public:
     /// ---------OPERATORS---------
 
     /// operator[]
-    std::vector<T>& operator[](std::size_t index)
+    std::vector<double>& operator[](std::size_t index)
     {
         return _matrix[index];
     }
-    const std::vector<T> operator[](std::size_t index) const
+    const std::vector<double> operator[](std::size_t index) const
     {
         return _matrix[index];
     }
 
     /// operator+
-    template <typename U>
-    Matrix<double> operator+(const Matrix<U>& other) const
+    Matrix operator+(const Matrix& other) const
     {
         try {
-            if (_row == other.get_row() && _column == other.get_column())
+            if (_row == other.get_row_size() && _column == other.get_column_size())
             {
-                Matrix<double> new_matrix(_row, _column);
+                Matrix new_matrix(_row, _column);
                 for (std::size_t i = 0; i < _row; ++i)
                 {
                     for (std::size_t j = 0; j < _column; ++j)
@@ -306,12 +322,12 @@ public:
 
     /// operator-
     template <typename U>
-    Matrix<double> operator-(const Matrix<U>& other) const
+    Matrix operator-(const Matrix& other) const
     {
         try {
-            if (_row == other.get_row() && _column == other.get_column())
+            if (_row == other.get_row_size() && _column == other.get_column_size())
             {
-                Matrix<double> new_matrix(_row, _column);
+                Matrix new_matrix(_row, _column);
                 for (std::size_t i = 0; i < _row; ++i)
                 {
                     for (std::size_t j = 0; j < _column; ++j)
@@ -333,8 +349,7 @@ public:
     }
 
     /// operator* for matrix * matrix
-    template <typename U>
-    Matrix<double> operator*(const Matrix<U>& other) const
+    Matrix operator*(const Matrix& other) const
     {
         try {
             if (_column != other._row)
@@ -342,7 +357,7 @@ public:
                 throw std::logic_error("Incompatible matrix dimensions to multiplicate\n");
             }
             else {
-                Matrix<double> new_matrix(_row, other._column);
+                Matrix new_matrix(_row, other._column);
 
                 for (std::size_t i = 0; i < _row; ++i)
                 {
@@ -366,94 +381,99 @@ public:
     }
 
     /// operator* to multiply by any number
-    template <typename U>
-    friend Matrix<T> operator*(U value, const Matrix<T>& matrix) {
-        Matrix<T> newMatrix(matrix.get_row(), matrix.get_column());
-        for (std::size_t i = 0; i < matrix.get_row(); ++i) {
-            for (std::size_t j = 0; j < matrix.get_column(); ++j) {
-                newMatrix[i][j] = matrix.get_matrix()[i][j] * static_cast<T>(value);
+    friend Matrix operator*(double value, const Matrix& matrix) {
+        Matrix newMatrix(matrix.get_row_size(), matrix.get_column_size());
+        for (std::size_t i = 0; i < matrix.get_row_size(); ++i) {
+            for (std::size_t j = 0; j < matrix.get_column_size(); ++j) {
+                newMatrix[i][j] = matrix.get_value(i,j) * value;
             }
         }
         return newMatrix;
     }
 
     /// operator= to Matrix
-    Matrix<T>& operator=(const Matrix<T>& other) {
-        if (this != &other) {
-            _row = other._row;
-            _column = other._column;
-            _matrix.resize(_row, std::vector<T>(_column));
-            for (std::size_t i = 0; i < _row; ++i) {
-                for (std::size_t j = 0; j < _column; ++j) {
-                    _matrix[i][j] = other._matrix[i][j];
-                }
+    Matrix& operator=(const Matrix& other) {
+        _row = other.get_row_size();
+        _column = other.get_column_size();
+        _matrix.resize(_row, std::vector<double>(_column));
+        for (std::size_t i = 0; i < _row; ++i) {
+            for (std::size_t j = 0; j < _column; ++j) {
+                _matrix[i][j] = other.get_value(i,j);
             }
         }
         return *this;
     }
 
     /// operator+=
-    template <typename U>
-    Matrix<T>& operator+=(const Matrix<U>& other)
+    Matrix& operator+=(const Matrix& other)
     {
         for(std::size_t i = 0; i < _row; ++i)
         {
             for(std::size_t j = 0; j < _column; ++j)
             {
-                _matrix[i][j] += other.get_matrix()[i][j];
+                _matrix[i][j] += other.get_value(i,j);
             }
         }
         return *this;
     }
 
     /// operator-=
-    template <typename U>
-    Matrix<double>& operator-=(const Matrix<U>& other)
+    Matrix& operator-=(const Matrix& other)
     {
         for(std::size_t i = 0; i < _row; ++i)
         {
             for(std::size_t j = 0; j < _column; ++j)
             {
-                _matrix[i][j] -= other.get_matrix()[i][j];
+                _matrix[i][j] -= other.get_value(i,j);
             }
         }
         return *this;
     }
 
     /// operator*= for Matrix *= matrix;
-    template <typename U>
-    Matrix<double>& operator*=(const Matrix<U>& other)
+    Matrix& operator*=(const Matrix& other)
     {
-        _matrix = _matrix * other;
+        (*this) = (*this) * other;
         return *this;
     }
 
     /// operator*= for Matrix *= any type of number
-    template <typename U>
-    Matrix<double>& operator*=(U num)
+    Matrix& operator*=(double num)
     {
         (*this) = (*this) * num;
         return *this;
     }
 
     /// operator==
-    bool operator==(const Matrix<T>& rm) const
-    {
-        return _matrix == rm._matrix;
+    bool operator==(const Matrix& rm) const {
+        if (_row != rm._row || _column != rm._column) {
+            return false;
+        }
+
+        for (std::size_t i = 0; i < _row; ++i) {
+            for (std::size_t j = 0; j < _column; ++j) {
+                if (std::abs(_matrix[i][j] - rm._matrix[i][j]) > std::numeric_limits<double>::epsilon() * 100) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
+
     /// operator!=
-    bool operator!=(const Matrix<T>& rm) const
+    bool operator!=(const Matrix& rm) const
     {
-        return !(*this == rm);
+        return !(*(this) == rm);
     }
 
     /// ---------METHODS---------
 
     /// Transpose
-    Matrix<T> transpose() const
+    Matrix transpose() const
     {
-        Matrix<T> new_matrix(_column, _row);
+        Matrix new_matrix(_column, _row);
         for (std::size_t i = 0; i < _row; ++i)
         {
             for (std::size_t j = 0; j < _column; ++j)
@@ -464,19 +484,112 @@ public:
         return new_matrix;
     }
 
-    /// Upper Triangular Form
-    Matrix<T> toUpper() const
-    {
-        for (std::size_t i = 0; i < _row; ++i)
-        {
+    /// Gauss form
+    /*
+    std::vector<double> rowTransform(std::vector<double>& row1, std::vector<double>& row2, std::size_t offset) {
+        try {
+            double a = row1[offset];
+            double b = row2[offset];
 
+            if (b == 0) {
+                return row2;
+            }
 
+            for (std::size_t i = 0; i < _column; ++i) {
+                row1[i] *= b;
+            }
 
+            for (std::size_t i = 0; i < _column; ++i) {
+                row2[i] *= a;
+            }
+
+            for (std::size_t i = 0; i < _column; ++i) {
+                row2[i] -= row1[i];
+            }
+
+            for (std::size_t i = 0; i < _column; ++i) {
+                row1[i] /= b;
+            }
+
+            return row2;
+        }
+        catch (const std::exception& e) {
+            std::cout << e.what();
+            return row2; // Return original row2 in case of an exception
         }
     }
+    Matrix normalize(const Matrix& matrix) {
+        Matrix normalizedMatrix = matrix;
+
+        try {
+            std::size_t rows = matrix.get_row_size();
+            std::size_t cols = matrix.get_column_size();
+
+            // Find the maximum element in the matrix
+            double maxElement = matrix[0][0];
+            for (std::size_t i = 0; i < rows; ++i) {
+                for (std::size_t j = 0; j < cols; ++j) {
+                    if (matrix[i][j] > maxElement) {
+                        maxElement = matrix[i][j];
+                    }
+                }
+            }
+
+            // Normalize the matrix by dividing each element by the maximum element
+            for (std::size_t i = 0; i < rows; ++i) {
+                for (std::size_t j = 0; j < cols; ++j) {
+                    normalizedMatrix.value_setter(matrix[i][j] / maxElement, i, j);
+                }
+            }
+        }
+        catch (const std::exception& e) {
+            std::cout << e.what();
+        }
+
+        return normalizedMatrix;
+    }
+    Matrix upperTriangularForm(Matrix& mat, const Matrix& b) {
+        mat.addColumn(b);
+
+        std::size_t current = 0;
+
+        while (current < mat.get_row_size() - 1) {
+            //mat = mat.normalize(current);
+            std::size_t nextrow = current + 1;
+
+            while (nextrow < mat.get_row_size()) {
+                mat[nextrow] = mat.rowTransform(mat[current], mat[nextrow], current);
+                ++nextrow;
+            }
+
+            ++current;
+        }
+
+        // Reverse substitution part
+        Matrix result(mat.get_row_size(), 1, 0.0);
+        result[mat.get_row_size() - 1][0] = mat[mat.get_row_size() - 1][mat.get_column_size() - 1] / mat[mat.get_row_size() - 1][mat.get_row_size() - 1];
+        std::size_t i = mat.get_row_size() - 1;
+
+        while (i != 0) {
+            double rowsum = 0;
+            std::size_t j = i + 1;
+
+            while (j < mat.get_row_size()) {
+                rowsum += (mat[i - 1][j - 1]) * (result[j - 1][0]);
+                ++j;
+            }
+
+            result[i - 1][0] = (mat[i - 1][mat.get_column_size() - 1] - rowsum) / mat[i - 1][i - 1];
+            --i;
+        }
+
+        return result;
+    }
+    */
 
     /// Inverse of matrix
-    Matrix<T> inverse() const
+    /*
+    Matrix inverse() const
     {
         try {
             if (_row != _column) {
@@ -484,7 +597,7 @@ public:
             }
             else {
                 // Create an augmented matrix [A|I]
-                Matrix<T> augmented(_row, _column * 2);
+                Matrix augmented(_row, _column * 2);
                 for (std::size_t i = 0; i < _row; ++i) {
                     for (std::size_t j = 0; j < _column; ++j) {
                         augmented[i][j] = _matrix[i][j];
@@ -508,7 +621,7 @@ public:
                     }
 
                     // Scale pivot it_row
-                    T pivotElement = augmented[i][i];
+                    double pivotElement = augmented[i][i];
                     for (std::size_t j = i; j < _column * 2; ++j) {
                         augmented[i][j] /= pivotElement;
                     }
@@ -516,7 +629,7 @@ public:
                     // Elimination
                     for (std::size_t j = 0; j < _row; ++j) {
                         if (j != i) {
-                            T factor = augmented[j][i];
+                            double factor = augmented[j][i];
                             for (std::size_t k = i; k < _column * 2; ++k) {
                                 augmented[j][k] -= factor * augmented[i][k];
                             }
@@ -525,7 +638,7 @@ public:
                 }
 
                 // Extract the inverted matrix from the augmented matrix
-                Matrix<T> inverted(_row, _column);
+                Matrix inverted(_row, _column);
                 for (std::size_t i = 0; i < _row; ++i) {
                     for (std::size_t j = 0; j < _column; ++j) {
                         inverted[i][j] = augmented[i][_column + j];
@@ -538,15 +651,17 @@ public:
             std::cout << e.what();
         }
     }
+    */
 
     /// Determinant
-    T determinant()
+    /*
+    double determinant()
     {
         try {
             if (_row == _column)
             {
-                T determinant = 1;
-                Matrix<T> new_matrix(_row, _column);
+                double determinant = 1;
+                Matrix new_matrix(_row, _column);
                 new_matrix._matrix = _matrix;
                 new_matrix = new_matrix.upperTriangularForm();
                 for (std::size_t i = 0; i < _row; ++i)
@@ -565,19 +680,20 @@ public:
             std::cout << e.what();
         }
     }
+    */
 
     /// Trace
-    T trace() const
+    double trace() const
     {
-        T trace = 0;
+        double trace_ = 0;
         try {
             if (_column == _row)
             {
                 for (std::size_t i = 0; i < _row; ++i)
                 {
-                    trace += _matrix[i][i];
+                    trace_ += _matrix[i][i];
                 }
-                return trace;
+                return trace_;
             }
             else {
                 throw std::logic_error("Matrix is not square to calculate the trace\n");
@@ -594,40 +710,52 @@ public:
     {
         return std::make_pair(_row, _column);
     }
-
+    
     /// IsSymmetric
     bool isSymmetric()
     {
         return (*this) == (*this).transpose();
     }
 
-    /// ?
-    void swapRows(Matrix<T>& matrix, std::size_t row1, std::size_t row2) {
-        std::swap(matrix[row1], matrix[row2]);
+    void addColumn(const Matrix& column) {
+        try {
+            if (_row != column.get_row_size()) {
+                throw std::logic_error("Incompatible matrix dimensions to add a column\n");
+            }
+            else {
+                for (std::size_t i = 0; i < _row; ++i) {
+                    _matrix[i].push_back(column[i][0]);
+                }
+                ++_column;
+            }
+        }
+        catch (const std::exception& e) {
+            std::cout << e.what();
+        }
     }
 
     /// ---------GETTERS----------
 
     /// Row
-    std::size_t get_row() const
+    std::size_t get_row_size() const
     {
         return _row;
     }
 
     /// Column
-    std::size_t get_column() const
+    std::size_t get_column_size() const
     {
         return _column;
     }
 
     /// Returns Matrix[i][j]
-    T get_value(std::size_t i, std::size_t j) const
+    double get_value(std::size_t i, std::size_t j) const
     {
         return _matrix[i][j];
     }
 
     /// Matrix
-    std::vector<std::vector<T>> get_matrix() const
+    std::vector<std::vector<double>> get_matrix() const
     {
         return _matrix;
     }
@@ -635,7 +763,7 @@ public:
     /// ---------SETTERS---------
 
     /// Value setter
-    void value_setter(T num, std::size_t index1, std::size_t index2)
+    void value_setter(double num, std::size_t index1, std::size_t index2)
     {
         _matrix[index1][index2] = num;
     }
@@ -643,40 +771,38 @@ public:
 };
 
 /// operator* to multiply by any number
-template <typename T, typename U>
-Matrix<T> operator*(const Matrix<T>& matrix, U value) {
-    Matrix<T> newMatrix(matrix.get_row(), matrix.get_column());
-    for (std::size_t i = 0; i < matrix.get_row(); ++i) {
-        for (std::size_t j = 0; j < matrix.get_column(); ++j) {
-            newMatrix[i][j] = matrix.get_matrix()[i][j] * static_cast<T>(value);
+Matrix operator*(const Matrix& matrix, double value) {
+    Matrix newMatrix(matrix.get_row_size(), matrix.get_column_size());
+    for (std::size_t i = 0; i < matrix.get_row_size(); ++i) {
+        for (std::size_t j = 0; j < matrix.get_column_size(); ++j) {
+            newMatrix[i][j] = matrix.get_value(i,j) * value;
         }
     }
     return newMatrix;
 }
 
-template <typename T>
-std::ostream& operator<<(std::ostream& out, const Matrix<T>& matr)
+
+std::ostream& operator<<(std::ostream& out, const Matrix& matr)
 {
 
-    for (std::size_t i = 0; i < matr.get_row(); ++i)
+    for (std::size_t i = 0; i < matr.get_row_size(); ++i)
     {
-        (i == 0) ? std::cout << "⎛" : ((i == matr.get_row() - 1) ? std::cout<< "⎝" : std::cout << "│");
-        for (std::size_t u = 0; u < matr.get_column(); ++u)
+        (i == 0) ? std::cout << "⎛" : ((i == matr.get_row_size() - 1) ? std::cout<< "⎝" : std::cout << "│");
+        for (std::size_t u = 0; u < matr.get_column_size(); ++u)
         {
-            (u == matr.get_column() - 1) ? (out << matr[i][u]) : (out << matr[i][u] << " ");
+            (u == matr.get_column_size() - 1) ? (out << matr[i][u]) : (out << matr[i][u] << " ");
         }
-        (i == 0) ? std::cout << "⎞" : ((i == matr.get_row() - 1) ? std::cout<< "⎠" : std::cout << "│");
+        (i == 0) ? std::cout << "⎞" : ((i == matr.get_row_size() - 1) ? std::cout<< "⎠" : std::cout << "│");
         std::cout << std::endl;
     }
     return out;
 }
-template <typename T>
-std::istream& operator>>(std::istream& in, Matrix<T>& matr)
+std::istream& operator>>(std::istream& in, Matrix& matr)
 {
-    T num;
-    for (std::size_t i = 0; i < matr.get_row(); ++i)
+    double num;
+    for (std::size_t i = 0; i < matr.get_row_size(); ++i)
     {
-        for (std::size_t u = 0; u < matr.get_column(); ++u)
+        for (std::size_t u = 0; u < matr.get_column_size(); ++u)
         {
             in >> num;
             matr.value_setter(num, i, u);
