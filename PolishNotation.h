@@ -1,0 +1,102 @@
+#include <stack>
+#include <cctype>
+#include <map>
+#include <string>
+#include "matrix.h"
+
+
+int getPrecedence(char c) {
+    if (c == '+' || c == '-') {
+        return 1;
+    }
+    else if (c == '*') {
+        return 2;
+    }
+    return 0;  // Lower precedence for other characters
+}
+
+bool isOperator(char c) {
+    return (c == '+' || c == '-' || c == '*');
+}
+
+bool isVariable(char c) {
+    return (isalpha(c));
+}
+
+/// Converting expression to Polish notation
+std::string convertToPolish(const std::string& infix) {
+    std::stack<char> operators;
+    std::stack<std::string> operands;
+
+    for (char token : infix) {
+        if (isVariable(token)) {
+            operands.push(std::string(1, token));
+        }
+        else if (isOperator(token)) {
+            while (!operators.empty() && getPrecedence(operators.top()) >= getPrecedence(token)) {
+                operands.push(std::string(1, operators.top()));
+                operators.pop();
+            }
+            operators.push(token);
+        }
+        else if (token == '(') {
+            operators.push(token);
+        }
+        else if (token == ')') {
+            while (!operators.empty() && operators.top() != '(') {
+                operands.push(std::string(1, operators.top()));
+                operators.pop();
+            }
+            operators.pop(); // Pop '('
+        }
+    }
+
+    while (!operators.empty()) {
+        operands.push(std::string(1, operators.top()));
+        operators.pop();
+    }
+
+    std::string result;
+    while (!operands.empty()) {
+        result = operands.top() + result;
+        operands.pop();
+    }
+
+    return result;
+}
+
+/// Evaluating the result of Polish notation
+Matrix evaluatePolishExpression(const std::string& expression, const std::map<char, Matrix>& variableMap) {
+    std::stack<Matrix> operandStack;
+
+    for (char token : expression) {
+        if (isVariable(token)) {
+            operandStack.push(variableMap.at(token));
+        }
+        else {
+            Matrix operand2 = operandStack.top();
+            operandStack.pop();
+
+            Matrix operand1 = operandStack.top();
+            operandStack.pop();
+
+            if (token == '+') {
+                // Perform matrix addition (assuming matrices have the same size)
+                Matrix result = operand1 + operand2;
+                operandStack.push(result);
+            }
+            else if (token == '-') {
+                // Perform matrix subtraction (assuming matrices have the same size)
+                Matrix result = operand1 - operand2;
+                operandStack.push(result);
+            }
+            else if (token == '*') {
+                // Perform matrix multiplication
+                Matrix result = operand1 * operand2;
+                operandStack.push(result);
+            }
+        }
+    }
+
+    return operandStack.top();
+}

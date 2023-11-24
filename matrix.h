@@ -25,10 +25,6 @@
 
 ///TODO
 /*
-    double f = 2.5;
-    int a = 4;
-    long u = a + f;
-
     In trace() it prints 0, when matrix is not square
 
     Iterator works, but im not sure, that it correct
@@ -36,16 +32,16 @@
     ReverseIterator
     ConstReverseIterator
 
-    Is it necessary , that return value of operators - + * is Matirx<double>?
-
     stupencheti
     rankD
     obratni
     determinant
     СЛУ
     A * X * C = B
-*/
 
+    write comments about working of functions 
+    to improve them in future
+*/
 
 class Matrix
 {
@@ -240,18 +236,15 @@ public:
     }
 
     /// Copy constructor
-    Matrix(Matrix& other) : 
+    Matrix(const Matrix& other) : 
         _row(other._row)
         ,_column(other._column)
         ,_matrix(other._matrix)
-    {
-        std::cout << "Copy called\n";
-    }
+    {}
 
     /// Initializer list constructor
     Matrix(const std::initializer_list<std::initializer_list<double>>& list)
     {
-        std::cout << "Init called\n";
         _row = list.size();
         if (_row > 0)
             _column = list.begin()->size();
@@ -275,7 +268,6 @@ public:
         _row = std::move(other._row);
         _column = std::move(other._column);
         _matrix = std::move(other._matrix);
-        std::cout << "Move called\n";
     }
     
     /// Destructor
@@ -321,7 +313,6 @@ public:
     }
 
     /// operator-
-    template <typename U>
     Matrix operator-(const Matrix& other) const
     {
         try {
@@ -461,7 +452,6 @@ public:
         return true;
     }
 
-
     /// operator!=
     bool operator!=(const Matrix& rm) const
     {
@@ -485,108 +475,18 @@ public:
     }
 
     /// Gauss form
-    /*
-    std::vector<double> rowTransform(std::vector<double>& row1, std::vector<double>& row2, std::size_t offset) {
-        try {
-            double a = row1[offset];
-            double b = row2[offset];
-
-            if (b == 0) {
-                return row2;
-            }
-
-            for (std::size_t i = 0; i < _column; ++i) {
-                row1[i] *= b;
-            }
-
-            for (std::size_t i = 0; i < _column; ++i) {
-                row2[i] *= a;
-            }
-
-            for (std::size_t i = 0; i < _column; ++i) {
-                row2[i] -= row1[i];
-            }
-
-            for (std::size_t i = 0; i < _column; ++i) {
-                row1[i] /= b;
-            }
-
-            return row2;
-        }
-        catch (const std::exception& e) {
-            std::cout << e.what();
-            return row2; // Return original row2 in case of an exception
-        }
-    }
-    Matrix normalize(const Matrix& matrix) {
-        Matrix normalizedMatrix = matrix;
-
-        try {
-            std::size_t rows = matrix.get_row_size();
-            std::size_t cols = matrix.get_column_size();
-
-            // Find the maximum element in the matrix
-            double maxElement = matrix[0][0];
-            for (std::size_t i = 0; i < rows; ++i) {
-                for (std::size_t j = 0; j < cols; ++j) {
-                    if (matrix[i][j] > maxElement) {
-                        maxElement = matrix[i][j];
-                    }
-                }
-            }
-
-            // Normalize the matrix by dividing each element by the maximum element
-            for (std::size_t i = 0; i < rows; ++i) {
-                for (std::size_t j = 0; j < cols; ++j) {
-                    normalizedMatrix.value_setter(matrix[i][j] / maxElement, i, j);
-                }
-            }
-        }
-        catch (const std::exception& e) {
-            std::cout << e.what();
-        }
-
-        return normalizedMatrix;
-    }
-    Matrix upperTriangularForm(Matrix& mat, const Matrix& b) {
-        mat.addColumn(b);
-
-        std::size_t current = 0;
-
-        while (current < mat.get_row_size() - 1) {
-            //mat = mat.normalize(current);
-            std::size_t nextrow = current + 1;
-
-            while (nextrow < mat.get_row_size()) {
-                mat[nextrow] = mat.rowTransform(mat[current], mat[nextrow], current);
-                ++nextrow;
-            }
-
-            ++current;
-        }
-
-        // Reverse substitution part
-        Matrix result(mat.get_row_size(), 1, 0.0);
-        result[mat.get_row_size() - 1][0] = mat[mat.get_row_size() - 1][mat.get_column_size() - 1] / mat[mat.get_row_size() - 1][mat.get_row_size() - 1];
-        std::size_t i = mat.get_row_size() - 1;
-
-        while (i != 0) {
-            double rowsum = 0;
-            std::size_t j = i + 1;
-
-            while (j < mat.get_row_size()) {
-                rowsum += (mat[i - 1][j - 1]) * (result[j - 1][0]);
-                ++j;
-            }
-
-            result[i - 1][0] = (mat[i - 1][mat.get_column_size() - 1] - rowsum) / mat[i - 1][i - 1];
-            --i;
-        }
-
-        return result;
-    }
-    */
-
+    
+    /*void gaussMethod(Matrix& mat, int n, std::vector<double> b)
+    {
+        int current = 0;
+        while (current < n - 1)
+            mat = normalize(mat, current)
+                nextrow = current + 1
+                while nextrow < n :
+                    mat[nextrow] = rowTransform(mat[current], mat[nextrow], current)
+                    nextrow += 1
+                    current += 1
+    }*/
     /// Inverse of matrix
     /*
     Matrix inverse() const
@@ -781,18 +681,17 @@ Matrix operator*(const Matrix& matrix, double value) {
     return newMatrix;
 }
 
-
 std::ostream& operator<<(std::ostream& out, const Matrix& matr)
 {
 
     for (std::size_t i = 0; i < matr.get_row_size(); ++i)
     {
-        (i == 0) ? std::cout << "⎛" : ((i == matr.get_row_size() - 1) ? std::cout<< "⎝" : std::cout << "│");
+        (i == 0) ? std::cout << "|" : ((i == matr.get_row_size() - 1) ? std::cout<< "|" : std::cout << "|");
         for (std::size_t u = 0; u < matr.get_column_size(); ++u)
         {
             (u == matr.get_column_size() - 1) ? (out << matr[i][u]) : (out << matr[i][u] << " ");
         }
-        (i == 0) ? std::cout << "⎞" : ((i == matr.get_row_size() - 1) ? std::cout<< "⎠" : std::cout << "│");
+        (i == 0) ? std::cout << "|" : ((i == matr.get_row_size() - 1) ? std::cout<< "|" : std::cout << "|");
         std::cout << std::endl;
     }
     return out;
@@ -810,3 +709,4 @@ std::istream& operator>>(std::istream& in, Matrix& matr)
     }
     return in;
 }
+
