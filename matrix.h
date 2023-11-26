@@ -34,8 +34,6 @@
 
     stupencheti
     rankD
-    obratni
-    determinant
     СЛУ
     A * X * C = B
 
@@ -49,6 +47,31 @@ private:
     std::size_t _row;
     std::size_t _column;
     std::vector<std::vector<double>> _matrix;
+
+    Matrix createMinorMatrix(size_t rowToRemove, size_t colToRemove) const {
+        size_t n = _row;
+        size_t m = _column;
+
+        Matrix minor(n - 1, m - 1);
+
+        for (size_t i = 0, new_i = 0; i < n; ++i) {
+            if (i == rowToRemove) {
+                continue;  // Skip the row to be removed
+            }
+
+            for (size_t j = 0, new_j = 0; j < m; ++j) {
+                if (j == colToRemove) {
+                    continue;  // Skip the column to be removed
+                }
+
+                minor[new_i][new_j] = _matrix[i][j];
+                ++new_j;
+            }
+
+            ++new_i;
+        }
+        return minor;
+    }
 public:
     ///---------ITERATOR---------
     class Iterator
@@ -475,104 +498,105 @@ public:
     }
 
     /// Gauss form
-    
-    /*void gaussMethod(Matrix& mat, int n, std::vector<double> b)
+    Matrix gaussMethod() 
     {
-        int current = 0;
-        while (current < n - 1)
-            mat = normalize(mat, current)
-                nextrow = current + 1
-                while nextrow < n :
-                    mat[nextrow] = rowTransform(mat[current], mat[nextrow], current)
-                    nextrow += 1
-                    current += 1
-    }*/
-    /// Inverse of matrix
-    /*
-    Matrix inverse() const
-    {
-        try {
-            if (_row != _column) {
-                throw std::logic_error("Matrix is not square to calculate the inverse\n");
+        std::size_t n = get_row_size();
+        std::size_t m = get_column_size();
+        Matrix new_m = *this;
+        for (std::size_t i = 0; i < n; ++i) {
+            // Find the pivot row
+            std::size_t pivotRow = i;
+            for (std::size_t k = i + 1; k < n; ++k) {
+                if (std::fabs(new_m[k][i]) > std::fabs(new_m[pivotRow][i])) {
+                    pivotRow = k;
+                }
             }
-            else {
-                // Create an augmented matrix [A|I]
-                Matrix augmented(_row, _column * 2);
-                for (std::size_t i = 0; i < _row; ++i) {
-                    for (std::size_t j = 0; j < _column; ++j) {
-                        augmented[i][j] = _matrix[i][j];
+
+            // Swap rows if necessary
+            if (pivotRow != i) {
+                std::swap(new_m[i], new_m[pivotRow]);
+            }
+
+            // Make the diagonal element 1
+            double divisor = new_m[i][i];
+            for (std::size_t j = i; j < m; ++j) {
+                new_m[i][j] /= divisor;
+            }
+
+            // Make the other elements in the column 0
+            for (std::size_t k = 0; k < n; ++k) {
+                if (k != i) {
+                    double factor = new_m[k][i];
+                    for (std::size_t j = i; j < m; ++j) {
+                        new_m[k][j] -= factor * new_m[i][j];
                     }
-                    augmented[i][_column + i] = 1;
+                }
+            }
+        }
+        return new_m;
+    }
+    
+    /// Inverse of matrix
+    Matrix inverse() const {
+        try {
+            if (_row == _column && determinant() != 0)
+            {
+                Matrix augmentedMatrix = *this;
+
+                std::size_t n = _row;
+                std::size_t m = _column;
+
+                // Augment the matrix with the identity matrix
+                for (std::size_t i = 0; i < n; ++i) {
+                    augmentedMatrix[i].resize(2 * n, 0.0);
+                    augmentedMatrix[i][n + i] = 1.0;
                 }
 
-                // Apply Gauss-Jordan elimination
-                for (std::size_t i = 0; i < _row; ++i) {
-                    // Find pivot it_row
+                // Perform Gaussian elimination
+                for (std::size_t i = 0; i < n; ++i) {
+                    // Find the pivot row
                     std::size_t pivotRow = i;
-                    for (std::size_t j = i + 1; j < _row; ++j) {
-                        if (std::abs(augmented[j][i]) > std::abs(augmented[pivotRow][i])) {
-                            pivotRow = j;
+                    for (std::size_t k = i + 1; k < n; ++k) {
+                        if (std::fabs(augmentedMatrix[k][i]) > std::fabs(augmentedMatrix[pivotRow][i])) {
+                            pivotRow = k;
                         }
                     }
 
-                    // Swap rows
+                    // Swap rows if necessary
                     if (pivotRow != i) {
-                        swapRows(augmented, i, pivotRow);
+                        std::swap(augmentedMatrix[i], augmentedMatrix[pivotRow]);
                     }
 
-                    // Scale pivot it_row
-                    double pivotElement = augmented[i][i];
-                    for (std::size_t j = i; j < _column * 2; ++j) {
-                        augmented[i][j] /= pivotElement;
+                    // Make the diagonal element 1
+                    double divisor = augmentedMatrix[i][i];
+                    for (std::size_t j = i; j < 2 * n; ++j) {
+                        augmentedMatrix[i][j] /= divisor;
                     }
 
-                    // Elimination
-                    for (std::size_t j = 0; j < _row; ++j) {
-                        if (j != i) {
-                            double factor = augmented[j][i];
-                            for (std::size_t k = i; k < _column * 2; ++k) {
-                                augmented[j][k] -= factor * augmented[i][k];
+                    // Make the other elements in the column 0
+                    for (std::size_t k = 0; k < n; ++k) {
+                        if (k != i) {
+                            double factor = augmentedMatrix[k][i];
+                            for (std::size_t j = i; j < 2 * n; ++j) {
+                                augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
                             }
                         }
                     }
                 }
 
-                // Extract the inverted matrix from the augmented matrix
-                Matrix inverted(_row, _column);
-                for (std::size_t i = 0; i < _row; ++i) {
-                    for (std::size_t j = 0; j < _column; ++j) {
-                        inverted[i][j] = augmented[i][_column + j];
+                // Extract the inverse matrix from the augmented matrix
+                Matrix inverseMatrix(n, n);
+                for (std::size_t i = 0; i < n; ++i) {
+                    for (std::size_t j = 0; j < n; ++j) {
+                        inverseMatrix[i][j] = augmentedMatrix[i][n + j];
                     }
                 }
-                return inverted;
-            }
-        }
-        catch (const std::exception& e) {
-            std::cout << e.what();
-        }
-    }
-    */
 
-    /// Determinant
-    /*
-    double determinant()
-    {
-        try {
-            if (_row == _column)
-            {
-                double determinant = 1;
-                Matrix new_matrix(_row, _column);
-                new_matrix._matrix = _matrix;
-                new_matrix = new_matrix.upperTriangularForm();
-                for (std::size_t i = 0; i < _row; ++i)
-                {
-                    determinant *= new_matrix[i][i];
-                }
-                return determinant;
+                return inverseMatrix;
             }
             else
             {
-                throw std::logic_error("Matrix is not square for calculating the determinant\n");
+                throw std::logic_error("Matrix is not square to calculate the inverse\n");
             }
         }
         catch (const std::exception& e)
@@ -580,7 +604,32 @@ public:
             std::cout << e.what();
         }
     }
-    */
+
+    /// Determinant
+    double determinant() const {
+        if (_row != _column) {
+            throw std::invalid_argument("Matrix must be square to calculate the determinant.");
+        }
+
+        std::size_t n = _row;
+
+        // Base case: a 2x2 matrix
+        if (n == 2) {
+            return _matrix[0][0] * _matrix[1][1] - _matrix[0][1] * _matrix[1][0];
+        }
+
+        double det = 0.0;
+
+        for (std::size_t j = 0; j < n; ++j) {
+            // Calculate the minor matrix without the current row and column
+            Matrix minor = createMinorMatrix(0, j);
+
+            // Calculate the determinant using Laplace expansion
+            det += (j % 2 == 0 ? 1 : -1) * _matrix[0][j] * minor.determinant();
+        }
+
+        return det;
+    }
 
     /// Trace
     double trace() const
@@ -667,7 +716,6 @@ public:
     {
         _matrix[index1][index2] = num;
     }
-
 };
 
 /// operator* to multiply by any number
@@ -709,4 +757,3 @@ std::istream& operator>>(std::istream& in, Matrix& matr)
     }
     return in;
 }
-

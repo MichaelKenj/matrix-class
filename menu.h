@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include <chrono>
 #include <thread>
 #include <Windows.h>
@@ -5,6 +6,7 @@
 #include <dos.h>   
 #include <windows.h>  
 #include <time.h>  
+#include <limits>
 #include "solve.h"
 
 ///-----------PRINT FRAMES OF TITLES------------
@@ -24,17 +26,17 @@ void printFrame(const std::vector<std::string>& _hell)
 // Sliding Hello
 void slideHello()
 {
-    std::string row1 = "±±±±    ±±±±   ±±±±±±±±±±±±   ±±±±           ±±±±               ±±±±±";
-    std::string row2 = "±±±±    ±±±±   ±±±±±±±±±±±±   ±±±±           ±±±±             ±±±± ±±±±";
-    std::string row3 = "±±±±    ±±±±   ±±±±           ±±±±           ±±±±            ±±±±   ±±±±";
-    std::string row4 = "±±±±±±±±±±±±   ±±±±±±±±±±±±   ±±±±           ±±±±           ±±±±     ±±±±";
-    std::string row5 = "±±±±±±±±±±±±   ±±±±±±±±±±±±   ±±±±           ±±±±           ±±±±     ±±±±";
-    std::string row6 = "±±±±    ±±±±   ±±±±           ±±±±           ±±±±            ±±±±   ±±±±";
-    std::string row7 = "±±±±    ±±±±   ±±±±±±±±±±±±   ±±±±±±±±±±±±   ±±±±±±±±±±±±     ±±±± ±±±±";
-    std::string row8 = "±±±±    ±±±±   ±±±±±±±±±±±±   ±±±±±±±±±±±±   ±±±±±±±±±±±±       ±±±±±";
+    std::string row1 = "±±±±    ±±±±   ±±±±±±±±±±±±   ±±±±           ±±±±              ±±±±±±";
+    std::string row2 = "±±±±    ±±±±   ±±±±           ±±±±           ±±±±            ±±±±  ±±±±";
+    std::string row3 = "±±±±    ±±±±   ±±±±           ±±±±           ±±±±           ±±±±    ±±±±";
+    std::string row4 = "±±±±±±±±±±±±   ±±±±±±±±±±±±   ±±±±           ±±±±           ±±±±    ±±±±";
+    std::string row5 = "±±±±±±±±±±±±   ±±±±±±±±±±±±   ±±±±           ±±±±           ±±±±    ±±±±";
+    std::string row6 = "±±±±    ±±±±   ±±±±           ±±±±           ±±±±           ±±±±    ±±±±";
+    std::string row7 = "±±±±    ±±±±   ±±±±           ±±±±           ±±±±            ±±±±  ±±±±";
+    std::string row8 = "±±±±    ±±±±   ±±±±±±±±±±±±   ±±±±±±±±±±±±   ±±±±±±±±±±±±      ±±±±±±";
     
     std::vector<std::string> _hello{ row1, row2, row3, row4, row5, row6, row7, row8 };
-    int spaces = 28;
+    int spaces = 24;
 
     std::string sps = "";
     for (int i = 0; i < 50; ++i)
@@ -111,7 +113,31 @@ void printInterface();
 /// Printing Solving System of Linear Equations
 void printSolveSOLEInterface()
 {
+    setcursor(0, 0);
+    srand((unsigned)time(NULL));
 
+    do {
+        system("cls");
+        gotoxy(10, 5); std::cout << " --------------------------- ";
+        gotoxy(10, 6); std::cout << " |System of linear equation| ";
+        gotoxy(10, 7); std::cout << " ---------------------------";
+        gotoxy(10, 9); std::cout << "1. Input your system ";
+        gotoxy(10, 10); std::cout << "2. Return to main menu ";
+        gotoxy(10, 12); std::cout << "Select an option: ";
+
+        char op = _getche();
+
+        if (op == '2')
+        {
+            printInterface();
+        }
+        else if (op == '1')
+        {
+            solveSOLE();
+            // Clear the input buffer
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    } while (true);
 }
 
 /// Printing the Solving Matrix equation
@@ -132,18 +158,21 @@ void printMatrixCalcInterface()
         gotoxy(10, 6); std::cout << " |    Matrix calculator   | ";
         gotoxy(10, 7); std::cout << " --------------------------";
         gotoxy(10, 9); std::cout << "1. Input your statement ";
-        gotoxy(10, 10); std::cout << "2. return to main menu ";
+        gotoxy(10, 10); std::cout << "2. Return to main menu ";
         gotoxy(10, 12); std::cout << "Select an option: ";
         
         char op = _getche();
+        
 
         if (op == '2')
         {
             printInterface();
         }
-        else
+        else if(op == '1')
         {
             matrixCalc();
+            // Clear the input buffer
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
     } while (true);
 }
@@ -165,11 +194,14 @@ void printInterface()
         gotoxy(10, 12); std::cout << "4. Quit";
         gotoxy(10, 14); std::cout << "Select option: ";
         char op = _getche();
-
-        if (op == '1') printSolveSOLEInterface();
-        else if (op == '2') printSolveMEInterface();
-        else if (op == '3') printMatrixCalcInterface();
-        else if (op == '4') exit(0);
+        if (op == '1')
+            printSolveSOLEInterface();
+        else if (op == '2') 
+            printSolveMEInterface();
+        else if (op == '3') 
+            printMatrixCalcInterface();
+        else if (op == '4') 
+            exit(0);
 
     } while (1);
 }
