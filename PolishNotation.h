@@ -100,3 +100,38 @@ Matrix evaluatePolishExpression(const std::string& expression, const std::map<ch
 
     return operandStack.top();
 }
+
+std::stack<Matrix> operandStack;
+
+void performOperation(char op) {
+    if (operandStack.size() < 2) {
+        std::cerr << "Error: Insufficient operands for operator '" << op << "'." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    Matrix operand2 = operandStack.top();
+    operandStack.pop();
+
+    Matrix operand1 = operandStack.top();
+    operandStack.pop();
+
+    Matrix result;
+
+    if (op == '+') {
+        // Implement matrix addition
+        // This is a simple example, replace it with your actual matrix addition code
+        result = operand1 + operand2;
+        
+    }
+    else if (op == '*') {
+        // Implement matrix multiplication
+        // This is a simple example, replace it with your actual matrix multiplication code
+        result = operand1 * operand2;
+    }
+    else {
+        std::cerr << "Error: Unsupported operator '" << op << "'." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    operandStack.push(result);
+}

@@ -312,7 +312,7 @@ public:
     Matrix operator+(const Matrix& other) const
     {
         try {
-            if (_row == other.get_row_size() && _column == other.get_column_size())
+            if (_row == other.row() && _column == other.column())
             {
                 Matrix new_matrix(_row, _column);
                 for (std::size_t i = 0; i < _row; ++i)
@@ -339,7 +339,7 @@ public:
     Matrix operator-(const Matrix& other) const
     {
         try {
-            if (_row == other.get_row_size() && _column == other.get_column_size())
+            if (_row == other.row() && _column == other.column())
             {
                 Matrix new_matrix(_row, _column);
                 for (std::size_t i = 0; i < _row; ++i)
@@ -396,10 +396,10 @@ public:
 
     /// operator* to multiply by any number
     friend Matrix operator*(double value, const Matrix& matrix) {
-        Matrix newMatrix(matrix.get_row_size(), matrix.get_column_size());
-        for (std::size_t i = 0; i < matrix.get_row_size(); ++i) {
-            for (std::size_t j = 0; j < matrix.get_column_size(); ++j) {
-                newMatrix[i][j] = matrix.get_value(i,j) * value;
+        Matrix newMatrix(matrix.row(), matrix.column());
+        for (std::size_t i = 0; i < matrix.row(); ++i) {
+            for (std::size_t j = 0; j < matrix.column(); ++j) {
+                newMatrix[i][j] = matrix[i][j] * value;
             }
         }
         return newMatrix;
@@ -407,12 +407,12 @@ public:
 
     /// operator= to Matrix
     Matrix& operator=(const Matrix& other) {
-        _row = other.get_row_size();
-        _column = other.get_column_size();
+        _row = other.row();
+        _column = other.column();
         _matrix.resize(_row, std::vector<double>(_column));
         for (std::size_t i = 0; i < _row; ++i) {
             for (std::size_t j = 0; j < _column; ++j) {
-                _matrix[i][j] = other.get_value(i,j);
+                _matrix[i][j] = other[i][j];
             }
         }
         return *this;
@@ -425,7 +425,7 @@ public:
         {
             for(std::size_t j = 0; j < _column; ++j)
             {
-                _matrix[i][j] += other.get_value(i,j);
+                _matrix[i][j] += other[i][j];
             }
         }
         return *this;
@@ -438,7 +438,7 @@ public:
         {
             for(std::size_t j = 0; j < _column; ++j)
             {
-                _matrix[i][j] -= other.get_value(i,j);
+                _matrix[i][j] -= other[i][j];
             }
         }
         return *this;
@@ -484,7 +484,7 @@ public:
     /// ---------METHODS---------
 
     /// Transpose
-    Matrix transpose() const
+    const Matrix transpose() const
     {
         Matrix new_matrix(_column, _row);
         for (std::size_t i = 0; i < _row; ++i)
@@ -495,45 +495,6 @@ public:
             }
         }
         return new_matrix;
-    }
-
-    /// Gauss form
-    Matrix gaussMethod() 
-    {
-        std::size_t n = get_row_size();
-        std::size_t m = get_column_size();
-        Matrix new_m = *this;
-        for (std::size_t i = 0; i < n; ++i) {
-            // Find the pivot row
-            std::size_t pivotRow = i;
-            for (std::size_t k = i + 1; k < n; ++k) {
-                if (std::fabs(new_m[k][i]) > std::fabs(new_m[pivotRow][i])) {
-                    pivotRow = k;
-                }
-            }
-
-            // Swap rows if necessary
-            if (pivotRow != i) {
-                std::swap(new_m[i], new_m[pivotRow]);
-            }
-
-            // Make the diagonal element 1
-            double divisor = new_m[i][i];
-            for (std::size_t j = i; j < m; ++j) {
-                new_m[i][j] /= divisor;
-            }
-
-            // Make the other elements in the column 0
-            for (std::size_t k = 0; k < n; ++k) {
-                if (k != i) {
-                    double factor = new_m[k][i];
-                    for (std::size_t j = i; j < m; ++j) {
-                        new_m[k][j] -= factor * new_m[i][j];
-                    }
-                }
-            }
-        }
-        return new_m;
     }
     
     /// Inverse of matrix
@@ -605,7 +566,7 @@ public:
         }
     }
 
-    /// Determinant
+    /// Determinant - WORKS PROPERLY
     double determinant() const {
         if (_row != _column) {
             throw std::invalid_argument("Matrix must be square to calculate the determinant.");
@@ -634,10 +595,11 @@ public:
     /// Trace
     double trace() const
     {
-        double trace_ = 0;
+        
         try {
             if (_column == _row)
             {
+                double trace_ = 0;
                 for (std::size_t i = 0; i < _row; ++i)
                 {
                     trace_ += _matrix[i][i];
@@ -653,77 +615,33 @@ public:
             std::cout << e.what();
         }
     }
-
-    /// Size
-    std::pair<std::size_t, std::size_t> size()
-    {
-        return std::make_pair(_row, _column);
-    }
     
-    /// IsSymmetric
-    bool isSymmetric()
-    {
-        return (*this) == (*this).transpose();
-    }
-
-    void addColumn(const Matrix& column) {
-        try {
-            if (_row != column.get_row_size()) {
-                throw std::logic_error("Incompatible matrix dimensions to add a column\n");
-            }
-            else {
-                for (std::size_t i = 0; i < _row; ++i) {
-                    _matrix[i].push_back(column[i][0]);
-                }
-                ++_column;
-            }
-        }
-        catch (const std::exception& e) {
-            std::cout << e.what();
-        }
-    }
-
-    /// ---------GETTERS----------
-
-    /// Row
-    std::size_t get_row_size() const
+    /// Row - WORKS PROPERLY
+    std::size_t row() const
     {
         return _row;
     }
 
-    /// Column
-    std::size_t get_column_size() const
+    /// Column - WORKS PROPERLY
+    std::size_t column() const
     {
         return _column;
     }
 
-    /// Returns Matrix[i][j]
-    double get_value(std::size_t i, std::size_t j) const
-    {
-        return _matrix[i][j];
-    }
 
-    /// Matrix
-    std::vector<std::vector<double>> get_matrix() const
+    /// IsSymmetric - WORKS PROPERLY
+    bool isSymmetric() const 
     {
-        return _matrix;
-    }
-
-    /// ---------SETTERS---------
-
-    /// Value setter
-    void value_setter(double num, std::size_t index1, std::size_t index2)
-    {
-        _matrix[index1][index2] = num;
+        return *this == transpose();
     }
 };
 
 /// operator* to multiply by any number
 Matrix operator*(const Matrix& matrix, double value) {
-    Matrix newMatrix(matrix.get_row_size(), matrix.get_column_size());
-    for (std::size_t i = 0; i < matrix.get_row_size(); ++i) {
-        for (std::size_t j = 0; j < matrix.get_column_size(); ++j) {
-            newMatrix[i][j] = matrix.get_value(i,j) * value;
+    Matrix newMatrix(matrix.row(), matrix.column());
+    for (std::size_t i = 0; i < matrix.row(); ++i) {
+        for (std::size_t j = 0; j < matrix.column(); ++j) {
+            newMatrix[i][j] = matrix[i][j] * value;
         }
     }
     return newMatrix;
@@ -732,14 +650,14 @@ Matrix operator*(const Matrix& matrix, double value) {
 std::ostream& operator<<(std::ostream& out, const Matrix& matr)
 {
 
-    for (std::size_t i = 0; i < matr.get_row_size(); ++i)
+    for (std::size_t i = 0; i < matr.row(); ++i)
     {
-        (i == 0) ? std::cout << "|" : ((i == matr.get_row_size() - 1) ? std::cout<< "|" : std::cout << "|");
-        for (std::size_t u = 0; u < matr.get_column_size(); ++u)
+        (i == 0) ? std::cout << "|" : ((i == matr.row() - 1) ? std::cout<< "|" : std::cout << "|");
+        for (std::size_t u = 0; u < matr.column(); ++u)
         {
-            (u == matr.get_column_size() - 1) ? (out << matr[i][u]) : (out << matr[i][u] << " ");
+            (u == matr.column() - 1) ? (out << matr[i][u]) : (out << matr[i][u] << " ");
         }
-        (i == 0) ? std::cout << "|" : ((i == matr.get_row_size() - 1) ? std::cout<< "|" : std::cout << "|");
+        (i == 0) ? std::cout << "|" : ((i == matr.row() - 1) ? std::cout<< "|" : std::cout << "|");
         std::cout << std::endl;
     }
     return out;
@@ -747,12 +665,12 @@ std::ostream& operator<<(std::ostream& out, const Matrix& matr)
 std::istream& operator>>(std::istream& in, Matrix& matr)
 {
     double num;
-    for (std::size_t i = 0; i < matr.get_row_size(); ++i)
+    for (std::size_t i = 0; i < matr.row(); ++i)
     {
-        for (std::size_t u = 0; u < matr.get_column_size(); ++u)
+        for (std::size_t j = 0; j < matr.column(); ++j)
         {
             in >> num;
-            matr.value_setter(num, i, u);
+            matr[i][j] = num;
         }
     }
     return in;
