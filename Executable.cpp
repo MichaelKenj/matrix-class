@@ -1,4 +1,4 @@
-#include "menu.h"
+#include "menu/menu.h"
 
 //TODO
 //convert sole to matrix in solve.h
