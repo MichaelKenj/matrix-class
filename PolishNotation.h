@@ -100,3 +100,4 @@ Matrix evaluatePolishExpression(const std::string& expression, const std::map<ch
 
     return operandStack.top();
 }
+

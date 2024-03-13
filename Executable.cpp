@@ -8,7 +8,7 @@ int main()
     //slideHello();
     //slideMatrixInc();
     printInterface();
-    
+
     return 0;
 }
 

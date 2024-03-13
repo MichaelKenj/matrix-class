@@ -107,6 +107,8 @@ void slideMatrixInc()
 }
 ///-----------START WORKING------------
 
+
+
 /// Printing the main menu
 void printInterface();
 
@@ -143,7 +145,31 @@ void printSolveSOLEInterface()
 /// Printing the Solving Matrix equation
 void printSolveMEInterface()
 {
+    setcursor(0, 0);
+    srand((unsigned)time(NULL));
 
+    do {
+        system("cls");
+        gotoxy(10, 5); std::cout << " --------------------------- ";
+        gotoxy(10, 6); std::cout << " | Solving matrix equation | ";
+        gotoxy(10, 7); std::cout << " --------------------------- ";
+        gotoxy(10, 9); std::cout << "1. Input your equation ";
+        gotoxy(10, 10); std::cout << "2. Return to main menu ";
+        gotoxy(10, 12); std::cout << "Select an option: ";
+
+        char op = _getche();
+
+        if (op == '2')
+        {
+            printInterface();
+        }
+        else if (op == '1')
+        {
+            solveME();
+            // Clear the input buffer
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    } while (true);
 }
 
 /// Printing Matrix calculation

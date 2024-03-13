@@ -4,90 +4,96 @@
 #include "PolishNotation.h"
 #include <sstream>
 #include <cstdlib>
+#include <unordered_map>
 
 /// Solving System of Linear equations
 void solveSOLE()
 {
-	system("cls");
-	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), { 0,0 });
-	
-	std::cout << "Enter variables count: ";
-	std::size_t row, col;
-	std::cin >> col;
-	std::cout << "Enter systems count: ";
-	std::cin >> row;
+	//system("cls");
+	//SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), { 0,0 });
+	//
+	//std::cout << "Enter variables count: ";
+	//std::size_t row, col;
+	//std::cin >> col;
+	//std::cout << "Enter systems count: ";
+	//std::cin >> row;
 
-	Matrix matr(row, col);
-	std::vector<double> freeTerm(row);
+	//Matrix matr(row, col);
+	//std::vector<double> freeTerm(row);
 
-	/// decorative moments
-	for (std::size_t i = 0; i < matr.size().first; ++i)
-	{
-		std::cout << "Equation " << i + 1 << ": \n";
-		for (std::size_t u = 0; u < matr.size().second; ++u)
-		{
-			std::cout << "           Coefficent x[" << u + 1 << "]: ";
-			std::cin >> matr[i][u];
-		}
-	}
-	for (std::size_t i = 0; i < freeTerm.size(); ++i)
-	{
-		std::cout << "FreeTerm[" << i+1 << "]: ";
-		std::cin >> freeTerm[i];
-	}
+	///// decorative moments
+	//for (std::size_t i = 0; i < matr.size().first; ++i)
+	//{
+	//	std::cout << "Equation " << i + 1 << ": \n";
+	//	for (std::size_t u = 0; u < matr.size().second; ++u)
+	//	{
+	//		std::cout << "           Coefficent x[" << u + 1 << "]: ";
+	//		std::cin >> matr[i][u];
+	//	}
+	//}
+	//for (std::size_t i = 0; i < freeTerm.size(); ++i)
+	//{
+	//	std::cout << "FreeTerm[" << i+1 << "]: ";
+	//	std::cin >> freeTerm[i];
+	//}
 
-	// can i indecate solve quantity?
+	//// can i indecate solve quantity?
 
-	/// Create an augmented matrix [A | B]
-	Matrix augmentedMatrix(matr.get_row_size(), matr.get_column_size() + 1);
-	for (size_t i = 0; i < matr.get_row_size(); ++i) {
-		for (size_t j = 0; j < matr.get_column_size(); ++j) {
-			augmentedMatrix[i][j] = matr[i][j];
-		}
-		augmentedMatrix[i][matr.get_column_size()] = freeTerm[i];
-	}
+	///// Create an augmented matrix [A | B]
+	//Matrix augmentedMatrix(matr.get_row_size(), matr.get_column_size() + 1);
+	//for (size_t i = 0; i < matr.get_row_size(); ++i) {
+	//	for (size_t j = 0; j < matr.get_column_size(); ++j) {
+	//		augmentedMatrix[i][j] = matr[i][j];
+	//	}
+	//	augmentedMatrix[i][matr.get_column_size()] = freeTerm[i];
+	//}
 
-	/// Apply Gaussian elimination
-	for (size_t i = 0; i < matr.get_row_size(); ++i) {
-		/// Make the diagonal element 1
-		double divisor = augmentedMatrix[i][i];
-		for (size_t j = i; j <= matr.get_column_size(); ++j) {
-			augmentedMatrix[i][j] /= divisor;
-		}
+	///// Apply Gaussian elimination
+	//for (size_t i = 0; i < matr.get_row_size(); ++i) {
+	//	/// Make the diagonal element 1
+	//	double divisor = augmentedMatrix[i][i];
+	//	for (size_t j = i; j <= matr.get_column_size(); ++j) {
+	//		augmentedMatrix[i][j] /= divisor;
+	//	}
 
-		/// Make the other elements in the column 0
-		for (size_t k = 0; k < matr.get_row_size(); ++k) {
-			if (k != i) {
-				double factor = augmentedMatrix[k][i];
-				for (size_t j = i; j <= matr.get_column_size(); ++j) {
-					augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
-				}
-			}
-		}
-	}
+	//	/// Make the other elements in the column 0
+	//	for (size_t k = 0; k < matr.get_row_size(); ++k) {
+	//		if (k != i) {
+	//			double factor = augmentedMatrix[k][i];
+	//			for (size_t j = i; j <= matr.get_column_size(); ++j) {
+	//				augmentedMatrix[k][j] -= factor * augmentedMatrix[i][j];
+	//			}
+	//		}
+	//	}
+	//}
 
-	/// Extract the solution vector from the augmented matrix
-	std::vector<double> solution(matr.get_row_size());
-	for (size_t i = 0; i < matr.get_row_size(); ++i) {
-		solution[i] = augmentedMatrix[i][matr.get_column_size()];
-	}
+	///// Extract the solution vector from the augmented matrix
+	//std::vector<double> solution(matr.get_row_size());
+	//for (size_t i = 0; i < matr.get_row_size(); ++i) {
+	//	solution[i] = augmentedMatrix[i][matr.get_column_size()];
+	//}
 
-	for (std::size_t i = 0; i < solution.size(); ++i)
-	{
-		std::cout << "x[" << i << "]: " << solution[i] << '\n';
-	}
-	
+	//for (std::size_t i = 0; i < solution.size(); ++i)
+	//{
+	//	std::cout << "x[" << i << "]: " << solution[i] << '\n';
+	//}
+	//
 
-	/// read about lucumneri qanak of SOLE
-	std::cout << "\nPress q to continue...";
-	char op = _getche();
-	if (op == 'q') return;
+	///// read about lucumneri qanak of SOLE
+	//std::cout << "\nPress q to continue...";
+	//char op = _getche();
+	//if (op == 'q') return;
 }
 
 /// Solving Matrix equation A * X * C = D
-void solveME()
-{
-	//stringov
+void solveME() {
+	system("cls");
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), { 0,0 });
+
+	//our statement
+	std::string _statement;
+	std::getline(std::cin, _statement);
+
 }
 
 /// Solving simple statements such as A - B * C
