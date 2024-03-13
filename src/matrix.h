@@ -483,7 +483,7 @@ public:
 
     /// ---------METHODS---------
 
-    /// Transpose
+    /// Transpose - WORKS PROPERLY
     const Matrix transpose() const
     {
         Matrix new_matrix(_column, _row);
@@ -498,7 +498,7 @@ public:
     }
     
     /// Inverse of matrix
-    Matrix inverse() const {
+    const Matrix inverse() const {
         try {
             if (_row == _column && determinant() != 0)
             {
@@ -567,7 +567,7 @@ public:
     }
 
     /// Determinant - WORKS PROPERLY
-    double determinant() const {
+    const double determinant() const {
         if (_row != _column) {
             throw std::invalid_argument("Matrix must be square to calculate the determinant.");
         }
@@ -593,7 +593,7 @@ public:
     }
 
     /// Trace
-    double trace() const
+    const double trace() const
     {
         
         try {
@@ -615,7 +615,22 @@ public:
             std::cout << e.what();
         }
     }
-    
+
+    bool isIdentitive() const
+    {
+        for (std::size_t i = 0; i < _row; ++i)
+        {
+            for (std::size_t j = 0; j < _column; ++j)
+            {
+                if (i == j && _matrix[i][j] != 1)
+                    return false;
+                if (i != j && _matrix[i][j] != 0)
+                    return false;
+            }
+        }
+        return true;
+    }
+
     /// Row - WORKS PROPERLY
     std::size_t row() const
     {
@@ -636,7 +651,7 @@ public:
     }
 };
 
-/// operator* to multiply by any number
+/// operator* to multiply by any number - WORKS PROPERLY
 Matrix operator*(const Matrix& matrix, double value) {
     Matrix newMatrix(matrix.row(), matrix.column());
     for (std::size_t i = 0; i < matrix.row(); ++i) {
